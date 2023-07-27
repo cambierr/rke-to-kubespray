@@ -1,0 +1,27 @@
+#DO NOT SPAWN IT IN KUBE-SYSTEM ON PROD! Only using that one in the test cluster
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: utility-pod-2
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: utility-pod-2
+  template:
+    metadata:
+      name: utility-pod-2
+      creationTimestamp: null
+      labels:
+        app: utility-pod-2
+    spec:
+      containers:
+        - name: utility-pod-2
+          image: debian:bullseye
+          command:
+            - /bin/bash
+          args:
+            - '-c'
+            - |
+              while true; do sleep 10; done;

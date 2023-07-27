@@ -1,0 +1,12 @@
+---
+# see roles/network_plugin/calico/defaults/main.yml
+# add default ippool name
+calico_pool_name: "default-ipv4-ippool"
+
+# set VXLAN encapsulation mode: "Always", "CrossSubnet", "Never"
+calico_vxlan_mode: 'Always'
+
+calico_feature_detect_override: "ChecksumOffloadBroken=true" 
+
+# UNCOMMENT IF YOU SEE WEIRD BEHAVIOR SPEEDWISE. IT'S THE RANCHER PORT BELOW
+# calico_vxlan_port: 8472

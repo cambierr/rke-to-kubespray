@@ -1,0 +1,78 @@
+---
+# Kubernetes configuration dirs and system namespace.
+## Change this to use another Kubernetes version, e.g. a current beta release
+kube_version: v1.25.6
+
+
+## It is possible to activate / deactivate selected authentication methods (oidc, static token auth)
+kube_oidc_auth: true
+# kube_token_auth: false
+
+## Variables for OpenID Connect Configuration https://kubernetes.io/docs/admin/authentication/
+## To use OpenID you have to deploy additional an OpenID Provider (e.g Dex, Keycloak, ...)
+
+kube_oidc_url: https://sts.windows.net/changeme/
+kube_oidc_client_id: "changeme"
+## Optional settings for OIDC
+# kube_oidc_ca_file: "{{ kube_cert_dir }}/ca.pem"
+kube_oidc_username_claim: upn
+# kube_oidc_username_prefix: 'oidc:'
+kube_oidc_groups_claim: groups
+# kube_oidc_groups_prefix: 'oidc:'
+
+
+# Choose network plugin (cilium, calico, kube-ovn, weave or flannel. Use cni for generic cni plugin)
+# Can also be set to 'cloud', which lets the cloud provider setup appropriate routing
+kube_network_plugin: calico
+
+# Kubernetes internal network for services, unused block of space.
+kube_service_addresses: 10.43.0.0/16
+
+# internal network. When used, it will assign IP
+# addresses from this range to individual pods.
+# This network must be unused in your network infrastructure!
+kube_pods_subnet: 10.42.0.0/16
+
+# Kube-proxy proxyMode configuration.
+# Can be ipvs, iptables
+kube_proxy_mode: iptables
+
+coredns_version: "{{ 'v1.9.3' if (kube_version is version('v1.25.0','>=')) else 'v1.8.6' }}"
+enable_nodelocaldns: false
+
+## Container runtime
+## docker for docker, crio for cri-o and containerd for containerd.
+## Default: containerd
+container_manager: containerd
+
+# Additional container runtimes
+kata_containers_enabled: false
+
+kubeadm_certificate_key: "{{ lookup('password', credentials_dir + '/kubeadm_certificate_key.creds length=64 chars=hexdigits') | lower }}"
+
+# audit log for kubernetes
+kubernetes_audit: true
+
+## Running on top of openstack vms with cinder enabled may lead to unschedulable pods due to NoVolumeZoneConflict restriction in kube-scheduler.
+## See https://github.com/kubernetes-sigs/kubespray/issues/2141
+## Set this variable to true to get rid of this issue
+volume_cross_zone_attachment: false
+## Add Persistent Volumes Storage Class for corresponding cloud provider (supported: in-tree OpenStack, Cinder CSI,
+## AWS EBS CSI, Azure Disk CSI, GCP Persistent Disk CSI)
+persistent_volumes_enabled: false
+
+## Amount of time to retain events. (default 1h0m0s)
+event_ttl_duration: "1h0m0s"
+
+kube_service_cgroups: "{% if kube_reserved %}{{ kube_reserved_cgroups_for_service_slice }}{% else %}system.slice{% endif %}"
+kubelet_runtime_cgroups: "/{{ kube_service_cgroups }}/{{ container_manager }}.service"
+kubelet_kubelet_cgroups: "/{{ kube_service_cgroups }}/kubelet.service"
+
+kube_kubeadm_apiserver_extra_args:
+  api-audiences: "unknown,https://kubernetes.default.svc.cluster.local"
+  service-account-issuer: "rke"
+
+# kubelet_max_pods: 220
+
+additional_sysctl:
+ - { name: fs.inotify.max_user_instances, value: 512 }

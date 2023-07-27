@@ -1,0 +1,83 @@
+--- cluster.yml	2023-04-11 11:31:42.185486113 +0200
++++ migrations_playbook/cluster.yml	2023-04-21 13:09:51.583112137 +0200
+@@ -12,7 +12,7 @@
+     - { role: kubespray-defaults }
+     - { role: bastion-ssh-config, tags: ["localhost", "bastion"] }
+ 
+-- hosts: k8s_cluster:etcd
++- hosts: kube_control_plane[0]
+   strategy: linear
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   gather_facts: false
+@@ -25,7 +25,7 @@
+   tags: always
+   import_playbook: facts.yml
+ 
+-- hosts: k8s_cluster:etcd
++- hosts: kube_control_plane[0]
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"
+@@ -35,7 +35,7 @@
+     - { role: "container-engine", tags: "container-engine", when: deploy_container_engine }
+     - { role: download, tags: download, when: "not skip_downloads" }
+ 
+-- hosts: etcd:kube_control_plane
++- hosts: kube_control_plane[0]
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"
+@@ -48,7 +48,7 @@
+         etcd_events_cluster_setup: "{{ etcd_events_cluster_enabled }}"
+       when: etcd_deployment_type != "kubeadm"
+ 
+-- hosts: k8s_cluster
++- hosts: kube_control_plane[0]
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"
+@@ -64,7 +64,7 @@
+         - kube_network_plugin in ["calico", "flannel", "canal", "cilium"] or cilium_deploy_additionally | default(false) | bool
+         - kube_network_plugin != "calico" or calico_datastore == "etcd"
+ 
+-- hosts: k8s_cluster
++- hosts: kube_control_plane[0]
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"
+@@ -72,7 +72,7 @@
+     - { role: kubespray-defaults }
+     - { role: kubernetes/node, tags: node }
+ 
+-- hosts: kube_control_plane
++- hosts: kube_control_plane[0]
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"
+@@ -82,7 +82,7 @@
+     - { role: kubernetes/client, tags: client }
+     - { role: kubernetes-apps/cluster_roles, tags: cluster-roles }
+ 
+-- hosts: k8s_cluster
++- hosts: kube_control_plane[0]
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"
+@@ -108,7 +108,7 @@
+     - { role: kubespray-defaults }
+     - { role: win_nodes/kubernetes_patch, tags: ["master", "win_nodes"] }
+ 
+-- hosts: kube_control_plane
++- hosts: kube_control_plane[0]
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"
+@@ -122,7 +122,7 @@
+     - { role: kubernetes-apps, tags: apps }
+ 
+ - name: Apply resolv.conf changes now that cluster DNS is up
+-  hosts: k8s_cluster
++  hosts: kube_control_plane[0]
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"

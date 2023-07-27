@@ -1,0 +1,38 @@
+all:
+  hosts:
+  # Define all the hosts below
+    production-kube-1:
+      ansible_host: 10.10.10.1
+      node_labels: {}
+    production-kube-2:
+      ansible_host: 10.10.10.2
+      node_labels: {}
+    production-kube-3:
+      ansible_host: 10.10.10.3
+      node_labels: {}
+
+  children:
+    kube_control_plane:
+      hosts:
+        # Add all the master below
+        production-kube-1:
+        production-kube-2:
+        production-kube-3:
+    kube_node:
+      hosts:
+       # Add all master AND worker below. Unless master aren't worker
+        production-kube-1:
+        production-kube-2:
+        production-kube-3:
+    etcd:
+      hosts:
+        # Add all master below
+        production-kube-1:
+        production-kube-2:
+        production-kube-3:
+    k8s_cluster:
+      children:
+        kube_control_plane:
+        kube_node:
+    calico_rr:
+      hosts: {}
